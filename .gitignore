@@ -1,0 +1,44 @@
+# =========================
+# Ejecutables
+# =========================
+monitor
+*.out
+*.exe
+*.app
+
+# =========================
+# Archivos compilados
+# =========================
+*.o
+*.obj
+*.a
+*.so
+
+# =========================
+# Archivos temporales
+# =========================
+*.log
+*.tmp
+*.cache
+
+# =========================
+# Archivos de sistema
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# VSCode
+# =========================
+.vscode/
+
+# =========================
+# Carpeta de build (si la usas después)
+# =========================
+build/
+
+# =========================
+# Archivos JSON generados por el programa
+# =========================
+json/*.json
+
