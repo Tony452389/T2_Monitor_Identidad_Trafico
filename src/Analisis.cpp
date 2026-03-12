@@ -89,7 +89,7 @@ void actualizarEstado(const Evento& evento){
     //registrar IP si existe
     if(!evento.ipOrigen.empty()){
         ipsConocidas.insert(evento.ipOrigen);
-        
+
     }
 }
 
@@ -99,8 +99,13 @@ void actualizarEstado(const Evento& evento){
 -----------------------------------------------------
 */
 void detectarAnomalias(const Evento& evento){
-
-    //Aqui se implementaran las reglas definidas
+    if(evento.tipo == TipoEvento::UNKNOWN){
+        generarAnomalia(
+            "Evento desconocido detectado",
+            NivelRiesgo::BAJO,
+            evento
+        );
+    }
 
     /*
     if(contadorICMP > 5){
@@ -133,7 +138,7 @@ void generarAnomalia(const std::string& descripcion, NivelRiesgo riesgo, const E
 
     queueSalida.push(anomaly);
 
-    std::cout << "[Analisis]: ANOMALIA" << descripcion << "\n";
+    std::cout << "[Analisis]: ANOMALIA -- " << descripcion << "\n";
 }
 
 
