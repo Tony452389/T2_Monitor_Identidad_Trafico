@@ -99,6 +99,7 @@ void actualizarEstado(const Evento& evento){
 -----------------------------------------------------
 */
 void detectarAnomalias(const Evento& evento){
+    //Regla 1: UNKNOWN
     if(evento.tipo == TipoEvento::UNKNOWN){
         generarAnomalia(
             "Evento desconocido detectado",
@@ -107,15 +108,18 @@ void detectarAnomalias(const Evento& evento){
         );
     }
 
-    /*
+    //Regla 2: ICMP Repetitivo
     if(contadorICMP > 5){
         generarAnomalia(
             "ICMP repetitivo detectado",
             NivelRiesgo::MEDIO,
             evento
         );
+
+        //Reiniciar contador para evitar alertas multiples
+        contadorICMP = 0;
     }
-    */
+    
 }
 
 /*
