@@ -2,6 +2,11 @@
 #include <iostream>
 #include <pcap.h>
 
+#include "Evento.h"
+#include "EventQueue.h"
+
+extern EventQueue queueEntrada;
+
 void procesarPaquete(u_char* args,
                      const struct pcap_pkthdr* header,
                      const u_char* packet)
@@ -17,6 +22,16 @@ void procesarPaquete(u_char* args,
     }
 
     std::cout << std::endl;
+
+    // Crear evento para el sistema
+    Evento e;
+
+    e.tipo = TipoEvento::UNKNOWN;
+    e.origenModulo = "Sniffer";
+    e.descripcion = "Paquete capturado por el sniffer";
+
+    // enviar evento a la cola del sistema
+    queueEntrada.push(e);
 }
 
 void iniciarSniffer()
@@ -24,17 +39,15 @@ void iniciarSniffer()
     std::cout << "Modulo Sniffer activo" << std::endl;
 
     char errbuf[PCAP_ERRBUF_SIZE];
-
-    // PONER INTERFAZ
+    
+    //  Interfaz y IP Pruebas
     const char* interfaz = "enp0s3";
-
-    // PONER IP
     const char* ip_local = "10.0.2.15";
 
     pcap_t* handle = pcap_open_live(
         interfaz,
         BUFSIZ,
-        1,       
+        1,
         1000,
         errbuf
     );
