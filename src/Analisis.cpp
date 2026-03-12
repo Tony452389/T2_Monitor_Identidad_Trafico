@@ -86,10 +86,17 @@ void actualizarEstado(const Evento& evento){
 
     //Aqui se actualizaran variables contadoras y registros de informacion
 
-    //registrar IP si existe
+    //registrar IP si existe (Regla 6: IP nueva)
     if(!evento.ipOrigen.empty()){
-        ipsConocidas.insert(evento.ipOrigen);
+        if(ipsConocidas.find(evento.ipOrigen) == ipsConocidas.end()){
+            generarAnomalia(
+                "IP nueva detectada en la red.",
+                NivelRiesgo::BAJO,
+                evento
+            );
 
+            ipsConocidas.insert(evento.ipOrigen);
+        }    
     }
 }
 
@@ -102,7 +109,7 @@ void detectarAnomalias(const Evento& evento){
     //Regla 1: UNKNOWN
     if(evento.tipo == TipoEvento::UNKNOWN){
         generarAnomalia(
-            "Evento desconocido detectado",
+            "Evento desconocido detectado.",
             NivelRiesgo::BAJO,
             evento
         );
@@ -111,7 +118,7 @@ void detectarAnomalias(const Evento& evento){
     //Regla 2: ICMP Repetitivo
     if(contadorICMP > 5){
         generarAnomalia(
-            "ICMP repetitivo detectado",
+            "ICMP repetitivo detectado.",
             NivelRiesgo::MEDIO,
             evento
         );
@@ -120,6 +127,61 @@ void detectarAnomalias(const Evento& evento){
         contadorICMP = 0;
     }
     
+    //Regla 3: ARP Repetitivo
+    if(contadorARP > 4){
+        generarAnomalia(
+            "ARP repetitivo detectado.",
+            NivelRiesgo::MEDIO,
+            evento
+        );
+
+        contadorARP = 0;
+    }
+
+    //Regla 4: MAC_Change Frecuente
+    if(contadorMAC > 2){
+        generarAnomalia(
+            "Cambios frecuentes de MAC detectados.",
+            NivelRiesgo::ALTO,
+            evento
+        );
+
+        contadorMAC = 0;
+    }
+
+    //Regla 5: IP_Chance Frecuente
+    if(contadorIP > 2){
+        generarAnomalia(
+            "Cambios frecuentes de IP detectados.",
+            NivelRiesgo::MEDIO,
+            evento
+        );
+
+        contadorIP = 0;
+    }
+
+    //Regla 7: UNKNOWN Masivo
+    if(contadorUNKNOWN > 5){
+        generarAnomalia(
+            "Trafico desconocido masivo detectado.",
+            NivelRiesgo::CRITICO,
+            evento
+        );
+
+        contadorUNKNOWN = 0;
+    }
+
+    //Regla 8: Posible Spoofing de Identida (MAC_Change + IP_Change)
+    if(contadorMAC > 0 && contadorIP > 0){
+        generarAnomalia(
+            "Posible Spoofing de identidad detectado",
+            NivelRiesgo::CRITICO,
+            evento
+        );
+
+        contadorIP  = 0;
+        contadorMAC = 0;
+    }
 }
 
 /*
