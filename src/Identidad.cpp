@@ -1,8 +1,8 @@
-#include "Identidad.h"
-
-// Constructor: inicializa la referencia a la cola de eventos
-ModuloIdentidad::ModuloIdentidad(EventQueue& colaEventos)
-    : queueEntrada(colaEventos) {}
+// Hecho por Sergio Pedro Sepulveda Rodríguez
+#include "identidad_modulo.h"
+#include "evento.h"
+#include <chrono>
+#include <ctime>
 
 // Procesa el estado actual de la interfaz
 void ModuloIdentidad::procesarEstadoActual(const std::string& iface, const std::string& ip, const std::string& mac) {
@@ -20,13 +20,42 @@ void ModuloIdentidad::procesarEstadoActual(const std::string& iface, const std::
     estadosPrevios[iface] = actual;
 }
 
-// Genera un evento de cambio de identidad y lo envía a la cola thread-safe
-void ModuloIdentidad::generarEventoCambio(const std::string& iface, const EstadoIdentidad& anterior, const EstadoIdentidad& actual) {
+// Genera un evento de cambio de IP o MAC y lo envía a la cola global
+void ModuloIdentidad::generarEventoCambio(const std::string& iface,
+                                           const EstadoIdentidad& anterior,
+                                           const EstadoIdentidad& actual)
+{
     Evento e;
-    e.tipo = Evento::Tipo::CAMBIO_IDENTIDAD;   // Tipo definido en evento.h
-    e.interfaceName = iface;
-    e.valorPrevio = "IP: " + anterior.ip + ", MAC: " + anterior.mac;
-    e.valorNuevo  = "IP: " + actual.ip + ", MAC: " + actual.mac;
 
+    // Tipo de evento
+    if (anterior.ip != actual.ip) {
+        e.tipo = TipoEvento::IP_CHANGE;
+    } else if (anterior.mac != actual.mac) {
+        e.tipo = TipoEvento::MAC_CHANGE;
+    } else {
+        e.tipo = TipoEvento::UNKNOWN;
+    }
+
+    // Módulo que genera el evento
+    e.origenModulo = "ModuloIdentidad";
+
+    // Descripción del cambio
+    e.descripcion = "Interfaz " + iface + " cambio: IP " + anterior.ip + " -> " + actual.ip +
+                    ", MAC " + anterior.mac + " -> " + actual.mac;
+
+    // Valores actuales
+    e.ipOrigen = actual.ip;
+    e.macOrigen = actual.mac;
+
+    // Timestamp
+    auto now = std::chrono::system_clock::now();
+    std::time_t t = std::chrono::system_clock::to_time_t(now);
+    e.timestamp = std::ctime(&t);
+    e.timestamp.pop_back(); // eliminar salto de línea
+
+    // Nivel de riesgo
+    e.nivelRiesgo = NivelRiesgo::NONE;
+
+    // Enviar evento a la cola global thread-safe
     queueEntrada.push(e);
 }
