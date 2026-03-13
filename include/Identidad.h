@@ -1,27 +1,30 @@
+//Hecho por: Sergio Pedro Sepúlveda Rodríguez
 #pragma once
 #include <string>
 #include <unordered_map>
+
+// Declaración de la cola global
 #include "eventqueue.h"
-#include "evento.h"
+extern EventQueue queueEntrada;
+
+// Estructura para almacenar estado previo de la interfaz
+struct EstadoIdentidad {
+    std::string ip;
+    std::string mac;
+};
 
 class ModuloIdentidad {
 public:
-    // Constructor recibe la cola de eventos thread-safe
-    explicit ModuloIdentidad(EventQueue& colaEventos);
+    ModuloIdentidad() = default;
 
     // Procesa el estado actual de la interfaz y genera eventos si hay cambios
     void procesarEstadoActual(const std::string& iface, const std::string& ip, const std::string& mac);
 
 private:
-    EventQueue& queueEntrada;  // referencia a la cola thread-safe
-
-    struct EstadoIdentidad {
-        std::string ip;
-        std::string mac;
-    };
-
     std::unordered_map<std::string, EstadoIdentidad> estadosPrevios;
 
-    // Método privado para generar eventos de cambio de identidad
-    void generarEventoCambio(const std::string& iface, const EstadoIdentidad& anterior, const EstadoIdentidad& actual);
+    // Genera un evento de cambio de IP o MAC
+    void generarEventoCambio(const std::string& iface,
+                             const EstadoIdentidad& anterior,
+                             const EstadoIdentidad& actual);
 };
