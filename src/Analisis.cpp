@@ -53,25 +53,27 @@ void iniciarAnalisis(){
 */
 void actualizarEstado(const Evento& evento){
     switch(evento.tipo){
-        case TipoEvento::ARP:
-            contadorARP++;
-            
-            break;
-
         case TipoEvento::ICMP:
             contadorICMP++;
-            
+            contadorARP = 0;
+
+            break;
+
+        case TipoEvento::ARP:
+            contadorARP++;
+            contadorICMP = 0;
+
             break;
         
-        case TipoEvento::IP_CHANGE:
-            contadorIP++;
-            ultimaIP = evento.ipOrigen;
-
-            break;
-
         case TipoEvento::MAC_CHANGE:
             contadorMAC++;
             ultimaMAC = evento.macOrigen;
+
+            break;
+
+        case TipoEvento::IP_CHANGE:
+            contadorIP++;
+            ultimaIP = evento.ipOrigen;
 
             break;
 
@@ -84,12 +86,17 @@ void actualizarEstado(const Evento& evento){
             break;
     }
 
-    //Aqui se actualizaran variables contadoras y registros de informacion
-
-    //registrar IP si existe
+    //registrar IP si existe (Regla 8: IP nueva)
     if(!evento.ipOrigen.empty()){
-        ipsConocidas.insert(evento.ipOrigen);
-        
+        if(ipsConocidas.find(evento.ipOrigen) == ipsConocidas.end()){
+            generarAnomalia(
+                "IP nueva detectada en la red.",
+                NivelRiesgo::BAJO,
+                evento
+            );
+
+            ipsConocidas.insert(evento.ipOrigen);
+        }    
     }
 }
 
@@ -99,18 +106,82 @@ void actualizarEstado(const Evento& evento){
 -----------------------------------------------------
 */
 void detectarAnomalias(const Evento& evento){
-
-    //Aqui se implementaran las reglas definidas
-
-    /*
-    if(contadorICMP > 5){
+    //Regla 1: UNKNOWN Masivo
+    if(contadorUNKNOWN > 5){
         generarAnomalia(
-            "ICMP repetitivo detectado",
+            "Trafico desconocido masivo detectado.",
+            NivelRiesgo::CRITICO,
+            evento
+        );
+
+        //Reiniciar contador para evitar alertas multiples
+        contadorUNKNOWN = 0;
+    }
+
+    //Regla 2: Posible Spoofing de Identida (MAC_Change + IP_Change)
+    else if(contadorMAC > 0 && contadorIP > 0){
+        generarAnomalia(
+            "Posible Spoofing de identidad detectado",
+            NivelRiesgo::CRITICO,
+            evento
+        );
+
+        contadorIP  = 0;
+        contadorMAC = 0;
+    }
+
+    //Regla 3: MAC_Change Frecuente
+    else if(contadorMAC > 2){
+        generarAnomalia(
+            "Cambios frecuentes de MAC detectados.",
+            NivelRiesgo::ALTO,
+            evento
+        );
+
+        contadorMAC = 0;
+    }
+    
+    //Regla 4: ICMP Repetitivo
+    else if(contadorICMP > 5){
+        generarAnomalia(
+            "ICMP repetitivo detectado.",
             NivelRiesgo::MEDIO,
             evento
         );
+
+        contadorICMP = 0;
     }
-    */
+
+    //Regla 5: ARP Repetitivo
+    else if(contadorARP > 4){
+        generarAnomalia(
+            "ARP repetitivo detectado.",
+            NivelRiesgo::MEDIO,
+            evento
+        );
+
+        contadorARP = 0;
+    }
+
+    //Regla 6: IP_Chance Frecuente
+    else if(contadorIP > 2){
+        generarAnomalia(
+            "Cambios frecuentes de IP detectados.",
+            NivelRiesgo::MEDIO,
+            evento
+        );
+
+        contadorIP = 0;
+    }
+
+    //Regla 7: UNKNOWN
+    else if(evento.tipo == TipoEvento::UNKNOWN){
+        generarAnomalia(
+            "Evento desconocido detectado.",
+            NivelRiesgo::BAJO,
+            evento
+        );
+    }
 }
 
 /*
@@ -133,7 +204,11 @@ void generarAnomalia(const std::string& descripcion, NivelRiesgo riesgo, const E
 
     queueSalida.push(anomaly);
 
-    std::cout << "[Analisis]: ANOMALIA" << descripcion << "\n";
+    std::cout << "[Analisis]: ANOMALIA -- "
+              << descripcion
+              << " | IP origen: " << eventoOriginal.ipOrigen
+              << " | Tipo evento: " << static_cast<int>(eventoOriginal.tipo)
+              << std::endl;
 }
 
 
