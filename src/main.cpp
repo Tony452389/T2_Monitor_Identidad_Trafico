@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <thread>
 
 #include "Evento.h"
 #include "EventQueue.h"
@@ -8,57 +9,34 @@
 #include "Sniffer.h"
 #include "JSONGen.h"
 
-#include <thread>
-
+//Colas globales del sistema
 EventQueue queueEntrada;
 EventQueue queueSalida;
 
-int main()
-{
-    std::cout << "Sistema de monitoreo iniciado" << std::endl;
+int main(){
+    std::cout << "==========================================" << std::endl;
+    std::cout << " Monitor de Identidad y Trafico de Red" << std::endl;
+    std::cout << "==========================================" << std::endl;
+    std::cout << "\nEl sistema se ejecuta en modo monitoreo continuo." << std::endl;
+    std::cout << "Presione CTRL + C para detener la ejecucion." << std::endl;
+    std::cout << "Nota: el modulo Sniffer puede requerir permisos (sudo)." << std::endl;
+    std::cout << std::endl;
 
-    iniciarIdentidad();
-    iniciarSniffer();
+    std::cout << "Iniciando sistema en 5 segundos..." << std::endl;
 
-    //----------------- Bloque de codigo temporal para añadir eventos a la cola y hacer pruebas con el modulo de Analisis ----------------------------
-    std::thread tAnalisis(iniciarAnalisis);
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
-    for(int i = 0; i <6; i++){
-        Evento e1;
-         e1.tipo = TipoEvento::ARP;
-        e1.descripcion = "ARP de prueba";
-        e1.origenModulo = "TEST";
-        queueEntrada.push(e1);
+    //Iniciar modulos como hilos
+    std::thread hiloSniffer(iniciarSniffer);
+    std::thread hiloIdentidad(iniciarIdentidad);
+    std::thread hiloAnalisis(iniciarAnalisis);
+    std::thread hiloJSON(iniciarJSON);
 
-        Evento e2;
-        e2.tipo = TipoEvento::ICMP;
-        e2.descripcion = "ICMP de prueba";
-        e2.origenModulo = "TEST";
-        queueEntrada.push(e2);
-
-        Evento e3;
-        e3.tipo = TipoEvento::IP_CHANGE;
-        e3.descripcion = "Cambio de IP de prueba";
-        e3.origenModulo = "TEST";
-        queueEntrada.push(e3);
-
-        Evento e4;
-        e4.tipo = TipoEvento::MAC_CHANGE;
-        e4.descripcion = "Cambio de MAC de prueba";
-        e4.origenModulo = "TEST";
-        queueEntrada.push(e4);
-
-        Evento e5;
-        e5.tipo = TipoEvento::UNKNOWN;
-        e5.descripcion = "Evento desconocido de prueba";
-        e5.origenModulo = "TEST";
-        queueEntrada.push(e5);
-    }
-
-    tAnalisis.join();
-    //------------------------------------------------------------------------------------------------------------------------------------------------
-    iniciarJSON();
-    
+    //Esperar a que los modulos terminen
+    hiloSniffer.join();
+    hiloIdentidad.join();
+    hiloAnalisis.join();
+    hiloJSON.join();
 
     return 0;
 }

@@ -10,6 +10,7 @@
 #include <iomanip>
 #include "Evento.h"
 #include "EventQueue.h"
+#include "Network.h"
 
 extern EventQueue queueEntrada;
 
@@ -125,11 +126,16 @@ void iniciarSniffer()
 
     char errbuf[PCAP_ERRBUF_SIZE];
 
-    const char* interfaz = "enp0s3";
-    const char* ip_local = "10.0.2.15";
+    Interface iface = getActiveInterface();
+
+    std::string interfaz = iface.name;
+    std::string ip_local = iface.ipv4;
+
+    std::cout << "Interfaz detectada: " << interfaz << std::endl;
+    std::cout << "IP detectada: " << ip_local << std::endl;
 
     pcap_t* handle = pcap_open_live(
-        interfaz,
+        interfaz.c_str(),
         BUFSIZ,
         1,
         1000,
