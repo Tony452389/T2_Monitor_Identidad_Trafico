@@ -1,12 +1,13 @@
+/*.....................................................................................................................................................
+                                                    Autor: Josue Israel Castro Aguilar
+.......................................................................................................................................................*/
+
 #include <iostream>
 #include <set>
 
 #include "Analisis.h"
 #include "Evento.h"
 #include "EventQueue.h"
-
-//Comando para compilar: g++ src/*.cpp -Iinclude -o monitor -lpcap -pthread
-//             ejecutar: ./monitor 
 
 extern EventQueue queueEntrada;
 extern EventQueue queueSalida;
@@ -204,7 +205,7 @@ void generarAnomalia(const std::string& descripcion, NivelRiesgo riesgo, const E
 
     queueSalida.push(anomaly);
 
-    std::cout << "[Analisis]: ANOMALIA -- "
+    std::cout << "\n[Analisis]: ANOMALIA -- "
               << descripcion
               << " | IP origen: " << eventoOriginal.ipOrigen
               << " | Tipo evento: " << static_cast<int>(eventoOriginal.tipo)
