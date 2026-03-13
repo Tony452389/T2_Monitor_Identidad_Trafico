@@ -4,12 +4,6 @@
 Herramienta en C++ para Linux que monitorea cambios en identidad digital (IP/MAC), captura tráfico de red, detecta patrones anómalos y genera reportes estructurados en JSON.
 El sistema se compone de varios módulos independientes que se comunican mediante una cola de eventos (EventQueue).
 
-## Arquitectura del proyecto
-Flujo de eventos:
-Identidad ──┐
-Sniffer ────┼──► EventQueue ───► Analisis ───► JSONGen
-│
-└──► eventos generados por el sistema
 
 ## Descripción de módulos
 Identidad
@@ -31,6 +25,7 @@ src/
     Sniffer.cpp
     Analisis.cpp
     JSONGen.cpp
+    Network.cpp
 
 include/
     Identidad.h
@@ -39,6 +34,7 @@ include/
     JSONGen.h
     Evento.h
     EventQueue.h
+    Network.h
 
 json/
     .gitkeep
@@ -66,7 +62,7 @@ g++ src/*.cpp -Iinclude -o monitor -lpcap -pthread
 
 
 ## Ejecución
-./monitor
+sudo ./monitor
 
 Dependiendo del sistema puede requerirse:
 sudo ./monitor
@@ -75,19 +71,6 @@ para permitir captura de paquetes de red.
 
 ## Flujo de trabajo con Git
 No se debe trabajar directamente en main.
-
-# Cada integrante trabaja en su rama correspondiente:
-    identidad
-    sniffer
-    analisis
-    jsongen
-
-# Proceso:
-    Cambiar a la rama del módulo
-    Realizar cambios
-    Hacer push a la rama
-    Crear Pull Request hacia main
-    Revisar cambios antes de integrar
 
 ## Reglas del proyecto
 No modificar main.cpp sin consenso del equipo.
