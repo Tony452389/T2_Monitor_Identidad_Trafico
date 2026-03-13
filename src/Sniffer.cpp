@@ -1,4 +1,11 @@
-// Marco Antonio Guadalupe Vargas Ruiz
+/*
+-----------------------------------------------------------------------------------
+Modulo: Sniffer
+Encargado del modulo: Marco Antonio Guadalupe Vargas Ruiz
+Proyecto: T2 - Monitor de Identidad y Trafico
+-----------------------------------------------------------------------------------
+*/
+
 #include "Sniffer.h"
 #include <iostream>
 #include <pcap.h>
@@ -122,7 +129,7 @@ void procesarPaquete(
 
 void iniciarSniffer()
 {
-    std::cout << "Modulo Sniffer activo" << std::endl;
+    std::cout << "[Sniffer]: Modulo iniciado\n" << std::endl;
 
     char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -148,7 +155,7 @@ void iniciarSniffer()
         return;
     }
 
-    std::cout << "Sniffing en interfaz: " << interfaz << std::endl;
+    std::cout << "\nSniffing en interfaz: " << interfaz << std::endl;
 
     struct bpf_program filtro;
 

@@ -1,3 +1,11 @@
+/*
+-----------------------------------------------------------------------------------
+Modulo: JsonGen
+Encargado del modulo: Ricardo Hervey Estrada Garcia
+Proyecto: T2 - Monitor de Identidad y Trafico
+-----------------------------------------------------------------------------------
+*/
+
 #include "JSONGen.h"
 #include <fstream>
 

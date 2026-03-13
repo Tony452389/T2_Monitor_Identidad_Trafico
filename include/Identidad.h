@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 // Declaración de la cola global
-#include "eventqueue.h"
+#include "EventQueue.h"
 extern EventQueue queueEntrada;
 
 // Estructura para almacenar estado previo de la interfaz

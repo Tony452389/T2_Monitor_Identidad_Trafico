@@ -1,6 +1,13 @@
-// Hecho por Sergio Pedro Sepulveda Rodríguez
-#include "identidad_modulo.h"
-#include "evento.h"
+/*
+-----------------------------------------------------------------------------------
+Modulo: Identidad
+Encargado del modulo: Sergio Pedro Sepulveda Rodriguez
+Proyecto: T2 - Monitor de Identidad y Trafico
+-----------------------------------------------------------------------------------
+*/
+
+#include "Identidad.h"
+#include "Evento.h"
 #include <chrono>
 #include <ctime>
 

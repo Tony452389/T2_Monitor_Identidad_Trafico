@@ -1,3 +1,11 @@
+/*
+-----------------------------------------------------------------------------------
+Modulo: Network
+Encargado del modulo: Equipo del Proyecto
+Proyecto: T2 - Monitor de Identidad y Trafico
+-----------------------------------------------------------------------------------
+*/
+
 #include "Network.h"
 #include <stdexcept>
 #include <pcap.h>

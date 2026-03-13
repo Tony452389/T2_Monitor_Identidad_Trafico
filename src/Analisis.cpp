@@ -1,6 +1,10 @@
-/*.....................................................................................................................................................
-                                                    Autor: Josue Israel Castro Aguilar
-.......................................................................................................................................................*/
+/*
+-----------------------------------------------------------------------------------
+Modulo: Analisis
+Encargado del modulo: Josue Israel Castro Aguilar
+Proyecto: T2 - Monitor de Identidad y Trafico
+-----------------------------------------------------------------------------------
+*/
 
 #include <iostream>
 #include <set>
@@ -30,7 +34,7 @@ std::string ultimaIP;
 -----------------------------------------------------
 */
 void iniciarAnalisis(){
-    std::cout << "[Analisis]: Modulo iniciado\n";
+    std::cout << "[Analisis]: Modulo iniciado\n" << std::endl;
 
     while(true){
         //1. Recibir evento
