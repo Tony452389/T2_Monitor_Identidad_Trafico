@@ -1,11 +1,42 @@
 #include "Sniffer.h"
 #include <iostream>
 #include <pcap.h>
+#include <arpa/inet.h>
+#include <netinet/ip.h>
+#include <netinet/if_ether.h>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
 
 #include "Evento.h"
 #include "EventQueue.h"
 
 extern EventQueue queueEntrada;
+
+std::string obtenerTimestamp()
+{
+    auto t = std::time(nullptr);
+    std::tm* tm = std::localtime(&t);
+
+    std::ostringstream oss;
+    oss << std::put_time(tm, "%Y-%m-%d %H:%M:%S");
+    return oss.str();
+}
+
+std::string macToString(const u_char* mac)
+{
+    std::ostringstream oss;
+
+    oss << std::hex << std::setfill('0')
+        << std::setw(2) << (int)mac[0] << ":"
+        << std::setw(2) << (int)mac[1] << ":"
+        << std::setw(2) << (int)mac[2] << ":"
+        << std::setw(2) << (int)mac[3] << ":"
+        << std::setw(2) << (int)mac[4] << ":"
+        << std::setw(2) << (int)mac[5];
+
+    return oss.str();
+}
 
 void procesarPaquete(u_char* args,
                      const struct pcap_pkthdr* header,
@@ -23,14 +54,46 @@ void procesarPaquete(u_char* args,
 
     std::cout << std::endl;
 
-    // Crear evento para el sistema
+    struct ether_header* eth = (struct ether_header*) packet;
+
     Evento e;
-
-    e.tipo = TipoEvento::UNKNOWN;
     e.origenModulo = "Sniffer";
-    e.descripcion = "Paquete capturado por el sniffer";
+    e.descripcion = "Paquete de red capturado";
+    e.timestamp = obtenerTimestamp();
 
-    // enviar evento a la cola del sistema
+    e.macOrigen = macToString(eth->ether_shost);
+    e.macDestino = macToString(eth->ether_dhost);
+
+    uint16_t etherType = ntohs(eth->ether_type);
+
+    if (etherType == ETHERTYPE_ARP)
+    {
+        e.tipo = TipoEvento::ARP;
+        e.descripcion = "Paquete ARP detectado";
+    }
+    else if (etherType == ETHERTYPE_IP)
+    {
+        struct ip* ipHeader =
+            (struct ip*)(packet + sizeof(struct ether_header));
+
+        e.ipOrigen = inet_ntoa(ipHeader->ip_src);
+        e.ipDestino = inet_ntoa(ipHeader->ip_dst);
+
+        if (ipHeader->ip_p == IPPROTO_ICMP)
+        {
+            e.tipo = TipoEvento::ICMP;
+            e.descripcion = "Paquete ICMP detectado";
+        }
+        else
+        {
+            e.tipo = TipoEvento::UNKNOWN;
+        }
+    }
+    else
+    {
+        e.tipo = TipoEvento::UNKNOWN;
+    }
+
     queueEntrada.push(e);
 }
 
@@ -39,8 +102,7 @@ void iniciarSniffer()
     std::cout << "Modulo Sniffer activo" << std::endl;
 
     char errbuf[PCAP_ERRBUF_SIZE];
-    
-    //  Interfaz y IP Pruebas
+
     const char* interfaz = "enp0s3";
     const char* ip_local = "10.0.2.15";
 
