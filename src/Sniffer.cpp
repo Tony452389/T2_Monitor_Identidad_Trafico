@@ -1,3 +1,4 @@
+// Marco Antonio Guadalupe Vargas Ruiz
 #include "Sniffer.h"
 #include <iostream>
 #include <pcap.h>
@@ -7,7 +8,6 @@
 #include <ctime>
 #include <sstream>
 #include <iomanip>
-
 #include "Evento.h"
 #include "EventQueue.h"
 
@@ -20,6 +20,7 @@ std::string obtenerTimestamp()
 
     std::ostringstream oss;
     oss << std::put_time(tm, "%Y-%m-%d %H:%M:%S");
+
     return oss.str();
 }
 
@@ -38,27 +39,37 @@ std::string macToString(const u_char* mac)
     return oss.str();
 }
 
-void procesarPaquete(u_char* args,
-                     const struct pcap_pkthdr* header,
-                     const u_char* packet)
+void procesarPaquete(
+    u_char* args,
+    const struct pcap_pkthdr* header,
+    const u_char* packet)
 {
-    int N = 24;
+    const int N = 24;
 
     std::cout << "\nPaquete capturado\n";
     std::cout << "Primeros " << N << " bytes: ";
 
     for (int i = 0; i < N && i < header->len; i++)
     {
-        printf("%02x ", packet[i]);
+        std::cout << std::hex << std::setw(2) << std::setfill('0')
+                  << (int)packet[i] << " ";
     }
 
-    std::cout << std::endl;
+    std::cout << std::dec << std::endl;
 
-    struct ether_header* eth = (struct ether_header*) packet;
+    // Validar tamaño mínimo para Ethernet
+    if (header->len < sizeof(struct ether_header))
+    {
+        return;
+    }
+
+    struct ether_header* eth =
+        (struct ether_header*)packet;
 
     Evento e;
+
     e.origenModulo = "Sniffer";
-    e.descripcion = "Paquete de red capturado";
+    e.descripcion = "Paquete capturado";
     e.timestamp = obtenerTimestamp();
 
     e.macOrigen = macToString(eth->ether_shost);
@@ -73,11 +84,22 @@ void procesarPaquete(u_char* args,
     }
     else if (etherType == ETHERTYPE_IP)
     {
+        if (header->len < sizeof(struct ether_header) + sizeof(struct ip))
+        {
+            return;
+        }
+
         struct ip* ipHeader =
             (struct ip*)(packet + sizeof(struct ether_header));
 
-        e.ipOrigen = inet_ntoa(ipHeader->ip_src);
-        e.ipDestino = inet_ntoa(ipHeader->ip_dst);
+        char ipSrc[INET_ADDRSTRLEN];
+        char ipDst[INET_ADDRSTRLEN];
+
+        inet_ntop(AF_INET, &(ipHeader->ip_src), ipSrc, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &(ipHeader->ip_dst), ipDst, INET_ADDRSTRLEN);
+
+        e.ipOrigen = ipSrc;
+        e.ipDestino = ipDst;
 
         if (ipHeader->ip_p == IPPROTO_ICMP)
         {
